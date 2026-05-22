@@ -20,10 +20,11 @@ test.describe('E2E: Opita Live Deck Audience Interaction', () => {
     interactPage.on('pageerror', err => console.log('INTERACT ERROR:', err));
 
     // 2. Act: Navigate to their respective endpoints
+    const roomId = `test-room-${Math.random().toString(36).substring(2, 9)}`;
     await Promise.all([
-      presenterPage.goto('/#/admin'),
-      viewerPage.goto('/#/'),
-      interactPage.goto('/#/interact')
+      presenterPage.goto(`/?room=${roomId}#/admin`),
+      viewerPage.goto(`/?room=${roomId}#/`),
+      interactPage.goto(`/?room=${roomId}#/interact`)
     ]);
 
     // Authenticate presenter through PasswordGate
@@ -48,7 +49,7 @@ test.describe('E2E: Opita Live Deck Audience Interaction', () => {
     await expect(interactPage.locator('text="LIVE"')).toBeVisible({ timeout: 15000 });
 
     // Reset presenter to slide 1
-    const prevButton = presenterPage.locator('button:has-text("Anterior")').first();
+    const prevButton = presenterPage.locator('#prev-slide-btn');
     while (await prevButton.isEnabled()) {
       await prevButton.click({ force: true });
       await presenterPage.waitForTimeout(300);
@@ -70,7 +71,7 @@ test.describe('E2E: Opita Live Deck Audience Interaction', () => {
 
     // --- Part 2: Demo Role Input Grid ---
     // Navigate presenter to slide 7
-    const nextButton = presenterPage.locator('button:has-text("Siguiente")').first();
+    const nextButton = presenterPage.locator('#next-slide-btn');
     for (let i = 1; i <= 8; i++) {
       const slideText = await presenterPage.locator('text=Diapositiva').textContent();
       if (slideText?.includes('7')) {
@@ -101,7 +102,7 @@ test.describe('E2E: Opita Live Deck Audience Interaction', () => {
     await expect(interactPage.locator('text=¡Enviado con éxito! Revisa la pantalla principal.')).toBeVisible({ timeout: 10000 });
 
     // Verify role appears in Viewer grid
-    await expect(viewerPage.locator('text=Fullstack Wizard E2E')).toBeVisible({ timeout: 10000 });
+    await expect(viewerPage.locator('.max-w-4xl >> text="Fullstack Wizard E2E"')).toBeVisible({ timeout: 10000 });
 
     // --- Part 3: Data Wipe / Limpiar Todo ---
     // Click "Limpiar Todo" in Presenter panel

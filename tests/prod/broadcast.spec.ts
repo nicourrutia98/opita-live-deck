@@ -16,9 +16,10 @@ test.describe('E2E: Opita Live Deck Broadcast', () => {
     viewerPage.on('pageerror', err => console.log('VIEWER ERROR:', err));
 
     // 2. Act: Both navigate to the production app
+    const roomId = `test-room-${Math.random().toString(36).substring(2, 9)}`;
     await Promise.all([
-      presenterPage.goto('/#/admin'),
-      viewerPage.goto('/#/')
+      presenterPage.goto(`/?room=${roomId}#/admin`),
+      viewerPage.goto(`/?room=${roomId}#/`)
     ]);
 
     // Authenticate presenter through PasswordGate
@@ -34,7 +35,7 @@ test.describe('E2E: Opita Live Deck Broadcast', () => {
 
     // Reset to slide 1 — PartyKit persists state, so we can't assume slide 1.
     // Click "Anterior" until disabled (we're at slide 1)
-    const prevButton = presenterPage.locator('button:has-text("Anterior")').first();
+    const prevButton = presenterPage.locator('#prev-slide-btn');
     while (await prevButton.isEnabled()) {
       await prevButton.click({ force: true });
       await presenterPage.waitForTimeout(300);
@@ -44,7 +45,7 @@ test.describe('E2E: Opita Live Deck Broadcast', () => {
     await expect(viewerPage.locator('text=El Futuro tiene')).toBeVisible({ timeout: 10000 });
 
     // Presenter clicks "Siguiente" → slide 2
-    const nextButton = presenterPage.locator('button:has-text("Siguiente")').first();
+    const nextButton = presenterPage.locator('#next-slide-btn');
     await nextButton.click({ force: true });
 
     // Viewer should receive broadcast → slide 2 content

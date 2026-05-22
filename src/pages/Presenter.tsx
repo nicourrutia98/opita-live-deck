@@ -97,8 +97,10 @@ export default function Presenter() {
   const noteStepRef = useRef<number>(0);
 
   useEffect(() => {
-    initializePartySocket(PARTYKIT_HOST, "presentation");
-    initializeChatSocket(PARTYKIT_HOST, "presentation");
+    const searchParams = new URLSearchParams(window.location.search);
+    const room = searchParams.get("room") || "presentation";
+    initializePartySocket(PARTYKIT_HOST, room);
+    initializeChatSocket(PARTYKIT_HOST, room);
     
     // Listener de prueba E2E (Shift+A) para inyectar nota simulada
     const handleTestKey = (e: KeyboardEvent) => {

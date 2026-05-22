@@ -17,7 +17,8 @@ test.describe('E2E: Opita Live Deck AI Notes Teleprompter', () => {
     });
 
     // 1. Arrange: Go to Admin panel
-    await page.goto('/#/admin');
+    const roomId = `test-room-${Math.random().toString(36).substring(2, 9)}`;
+    await page.goto(`/?room=${roomId}#/admin`);
 
     // Authenticate through PasswordGate
     const pinInput = page.locator('input[type="password"]');
@@ -32,10 +33,14 @@ test.describe('E2E: Opita Live Deck AI Notes Teleprompter', () => {
     // The AI Notes panel should NOT be visible initially
     await expect(page.locator('text=Copiloto IA')).toBeHidden();
 
+    // Ensure page has focus before pressing keys
+    await page.locator('h1:has-text("Admin Panel")').click();
+
     // 2. Act: Inject two AI notes using the TDD Shift+A shortcut
     // This simulates DeepSeek sending two consecutive notes
     await page.keyboard.press('Shift+A');
     await page.keyboard.press('Shift+A');
+    await page.waitForTimeout(500);
 
     // 3. Assert: The AI Notes feed should appear with the note text
     await expect(page.locator('text=Copiloto IA (Historial)')).toBeVisible();
@@ -47,13 +52,14 @@ test.describe('E2E: Opita Live Deck AI Notes Teleprompter', () => {
     // The pill has text '2', we can locate it by text but it's small, so we trust the count
     
     // 4. Act: Collapse the feed by clicking the header
-    await page.locator('#ai-feed-toggle').click({ force: true });
+    const toggleBtn = page.locator('#ai-feed-toggle');
+    await toggleBtn.evaluate(el => (el as HTMLElement).click());
 
     // 5. Assert: The notes should be hidden
     await expect(page.locator('text=Nota de prueba inyectada por TDD').first()).toBeHidden();
 
     // 6. Act: Expand the feed again
-    await page.locator('#ai-feed-toggle').click({ force: true });
+    await toggleBtn.evaluate(el => (el as HTMLElement).click());
 
     // 7. Assert: The notes should be visible again
     await expect(page.locator('text=Nota de prueba inyectada por TDD').first()).toBeVisible();

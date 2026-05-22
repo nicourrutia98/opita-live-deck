@@ -29,8 +29,10 @@ export default function Interact() {
 
   // Conectar sockets al montar
   useEffect(() => {
-    initializePartySocket(PARTYKIT_HOST, "presentation");
-    initializeChatSocket(PARTYKIT_HOST, "presentation");
+    const searchParams = new URLSearchParams(window.location.search);
+    const room = searchParams.get("room") || "presentation";
+    initializePartySocket(PARTYKIT_HOST, room);
+    initializeChatSocket(PARTYKIT_HOST, room);
   }, [initializePartySocket, initializeChatSocket]);
 
   // Scroll automático del chat

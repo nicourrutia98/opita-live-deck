@@ -10,7 +10,8 @@ test.describe('E2E: Slide Content & Brand Consistency', () => {
       }
     });
 
-    await page.goto('/');
+    const roomId = `test-room-${Math.random().toString(36).substring(2, 9)}`;
+    await page.goto(`/?room=${roomId}`);
 
     // Slide 1 should be visible by default
     await expect(page.locator('text=El Futuro tiene')).toBeVisible({ timeout: 10000 });
@@ -29,7 +30,8 @@ test.describe('E2E: Slide Content & Brand Consistency', () => {
   });
 
   test('Admin should show speaker notes with navigation arrows', async ({ page }) => {
-    await page.goto('/#/admin');
+    const roomId = `test-room-${Math.random().toString(36).substring(2, 9)}`;
+    await page.goto(`/?room=${roomId}#/admin`);
 
     // Auth through PasswordGate
     const pinInput = page.locator('input[type="password"]');
@@ -46,12 +48,14 @@ test.describe('E2E: Slide Content & Brand Consistency', () => {
 
     // Navigate to next beat
     const nextBeatBtn = page.locator('#next-note-btn');
-    await nextBeatBtn.click({ force: true });
+    await nextBeatBtn.scrollIntoViewIfNeeded();
+    await nextBeatBtn.evaluate(el => (el as HTMLElement).click());
     await expect(page.locator('text=2 / 4')).toBeVisible();
 
     // Navigate back
     const prevBeatBtn = page.locator('#prev-note-btn');
-    await prevBeatBtn.click({ force: true });
+    await prevBeatBtn.scrollIntoViewIfNeeded();
+    await prevBeatBtn.evaluate(el => (el as HTMLElement).click());
     await expect(page.locator('text=1 / 4')).toBeVisible();
   });
 

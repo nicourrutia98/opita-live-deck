@@ -100,8 +100,10 @@ export default function Viewer() {
   const [visibleMessages, setVisibleMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
-    initializePartySocket(PARTYKIT_HOST, "presentation");
-    initializeChatSocket(PARTYKIT_HOST, "presentation");
+    const searchParams = new URLSearchParams(window.location.search);
+    const room = searchParams.get("room") || "presentation";
+    initializePartySocket(PARTYKIT_HOST, room);
+    initializeChatSocket(PARTYKIT_HOST, room);
   }, [initializePartySocket, initializeChatSocket]);
 
   // Manejar el desvanecimiento de mensajes tras 6 segundos
