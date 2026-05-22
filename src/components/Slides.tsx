@@ -14,7 +14,7 @@ export const SlideContent = ({ slide }: { slide: number }) => {
     case 1:
       return (
         <div className="flex flex-col items-center justify-center h-full text-center px-8 md:px-16 space-y-6">
-          <img src="/opita-horizontal-dark.svg" alt="Opita Code" className="h-8 md:h-10 opacity-60 mb-2" />
+          <img src="/opita-horizontal-dark.svg" alt="Opita Code" className="h-10 md:h-14 opacity-100 mb-4 transition-all duration-300" />
           <h1 className="text-5xl md:text-8xl font-black text-[#09090B] tracking-tight leading-[0.95]">
             El Futuro tiene<br />
             <span className="text-[#c2410c]">Acento Opita</span>

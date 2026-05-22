@@ -127,11 +127,8 @@ export default function Viewer() {
         
         {/* Top Bar: branding + status */}
         <div className="flex items-center justify-between px-8 md:px-12 pt-6 z-20">
-          <img src={theme.logo} alt="Opita Code" className="h-8 md:h-10 opacity-80 transition-all duration-300" />
+          <img src={theme.logo} alt="Opita Code" className="h-10 md:h-12 opacity-100 transition-all duration-300" />
           <div className="flex items-center gap-4">
-            <div className={`p-2.5 rounded-xl shadow-sm border ${theme.qrBg} hover:scale-105 transition-all duration-300`}>
-              <QRCode value={qrUrl} size={72} fgColor={theme.qrFg} bgColor="transparent" />
-            </div>
             <div className={`flex items-center space-x-2 px-4 py-2 rounded-full text-xs font-mono border shadow-sm ${theme.statusBg} transition-all duration-300`}>
               <span className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-600 shadow-[0_0_8px_rgba(22,163,74,0.4)]' : 'bg-[#dc2626] animate-pulse'}`} />
               <span className="font-semibold">{isConnected ? 'LIVE' : 'CONECTANDO'}</span>
