@@ -1,0 +1,8 @@
+{
+  "name": "opita-live-deck",
+  "main": "party/slide-sync.ts",
+  "parties": {
+    "chat": "party/chat-server.ts"
+  },
+  "compatibilityDate": "2024-12-01"
+}
