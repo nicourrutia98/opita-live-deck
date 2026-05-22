@@ -254,9 +254,9 @@ export default function Presenter() {
   return (
     <div className="min-h-screen bg-[#EFEFEB] flex flex-col md:flex-row relative">
       {/* Columna Principal */}
-      <div className="flex-1 p-4 flex flex-col gap-6 overflow-y-auto max-h-screen">
+      <div className="flex-1 p-4 flex flex-col gap-6 overflow-y-auto max-h-dvh">
         {/* Header */}
-        <header className="flex justify-between items-center bg-[#F7F7F4] p-4 rounded-2xl border border-[#D9D9D3] shadow-sm">
+        <header className="flex justify-between items-center bg-[#F7F7F4] p-4 rounded-2xl border border-[#D9D9D3] shadow-sm shrink-0">
           <div>
             <img src="/opita-code-horizontal-black-v4.png" alt="Opita Code" className="h-6 mb-2 object-contain" />
             <h1 className="text-xl font-bold text-[#111111] leading-none">Admin Panel</h1>
@@ -314,7 +314,7 @@ export default function Presenter() {
         </header>
 
         {/* Navigation Controls (HUGE for mobile) */}
-        <div className="bg-[#F7F7F4] p-4 rounded-2xl border border-[#D9D9D3] shadow-sm flex flex-col gap-4">
+        <div className="bg-[#F7F7F4] p-4 rounded-2xl border border-[#D9D9D3] shadow-sm flex flex-col gap-4 shrink-0">
           <div className="text-center font-mono text-[#72726D] font-bold text-xl">
             Diapositiva {currentSlide} <span className="opacity-50">/ {SLIDES_COUNT}</span>
           </div>
@@ -352,7 +352,7 @@ export default function Presenter() {
         />
 
         {/* Action Triggers */}
-        <div className="bg-[#F7F7F4] p-5 rounded-2xl border border-[#D9D9D3] shadow-sm flex flex-col gap-4">
+        <div className="bg-[#F7F7F4] p-5 rounded-2xl border border-[#D9D9D3] shadow-sm flex flex-col gap-4 shrink-0">
           <h3 className="text-[#111111] font-medium">Acciones Especiales</h3>
           <button 
             id="demo-toggle-btn"
@@ -369,7 +369,7 @@ export default function Presenter() {
         </div>
 
         {/* Preview Panel (Oculto en móvil por espacio, visible en desktop) */}
-        <div className="hidden md:flex bg-[#F7F7F4] p-6 rounded-2xl border border-[#D9D9D3] flex-col items-center shadow-sm">
+        <div className="hidden md:flex bg-[#F7F7F4] p-6 rounded-2xl border border-[#D9D9D3] flex-col items-center shadow-sm shrink-0">
           <h3 className="text-[#72726D] mb-4 flex items-center gap-2">
             <MonitorSmartphone className="w-5 h-5" />
             <span>Previsualización (Audiencia)</span>
@@ -403,7 +403,7 @@ export default function Presenter() {
 
       {/* Sidebar de Chat de la Audiencia (Collapsible) */}
       {isChatSidebarOpen && (
-        <div className="w-full md:w-[350px] lg:w-[400px] border-l border-[#D9D9D3] bg-[#F7F7F4] flex flex-col h-screen shadow-lg sticky top-0 right-0 z-40">
+        <div className="w-full md:w-[350px] lg:w-[400px] border-l border-[#D9D9D3] bg-[#F7F7F4] flex flex-col h-dvh shadow-lg sticky top-0 right-0 z-40">
           {/* Header de la Sidebar */}
           <div className="p-4 border-b border-[#D9D9D3] flex justify-between items-center bg-[#EFEFEB]">
             <div className="flex items-center gap-2">
@@ -551,7 +551,7 @@ function AIFeedPanel() {
   if (notes.length === 0) return null;
 
   return (
-    <div className="bg-[#111111] rounded-2xl border border-[#2A2A2A] shadow-lg flex flex-col overflow-hidden transition-all duration-300">
+    <div className="bg-[#111111] rounded-2xl border border-[#2A2A2A] shadow-lg flex flex-col overflow-hidden transition-all duration-300 shrink-0">
       {/* Header Interactivo para Colapsar */}
       <button 
         id="ai-feed-toggle"
@@ -614,7 +614,7 @@ function SpeakerNotes({
   if (!current) return null;
 
   return (
-    <div className="bg-[#F7F7F4] rounded-2xl border border-[#D9D9D3] shadow-sm overflow-hidden">
+    <div className="bg-[#F7F7F4] rounded-2xl border border-[#D9D9D3] shadow-sm overflow-hidden shrink-0">
       {/* Header con progreso */}
       <div className="flex items-center justify-between px-5 pt-4 pb-2">
         <h2 className="text-sm font-semibold text-[#72726D] uppercase tracking-wide">Notas de Orador</h2>
