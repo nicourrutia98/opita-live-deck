@@ -14,7 +14,7 @@ export const SlideContent = ({ slide }: { slide: number }) => {
     case 1:
       return (
         <div className="flex flex-col items-center justify-center h-full text-center px-8 md:px-16 space-y-6">
-          <img src="/opita-horizontal-dark.svg" alt="Opita Code" className="h-10 md:h-14 opacity-100 mb-4 transition-all duration-300" />
+          <img src="/opita-code-horizontal-black-v4.png" alt="Opita Code" className="h-10 md:h-14 opacity-100 mb-4 object-contain transition-all duration-300" />
           <h1 className="text-5xl md:text-8xl font-black text-[#09090B] tracking-tight leading-[0.95]">
             El Futuro tiene<br />
             <span className="text-[#c2410c]">Acento Opita</span>
@@ -201,7 +201,7 @@ export const SlideContent = ({ slide }: { slide: number }) => {
     case 8:
       return (
         <div className="flex flex-col items-center justify-center h-full text-center px-8 md:px-16 space-y-8">
-          <img src="/opita-horizontal-light.svg" alt="Opita Code" className="h-12 md:h-16 opacity-90 mb-2" />
+          <img src="/opita-code-horizontal-white-v4.png" alt="Opita Code" className="h-12 md:h-16 opacity-90 mb-2 object-contain" />
           <h2 className="text-4xl md:text-7xl font-black text-white tracking-tight leading-[0.95]">
             Las APIs<br />
             <span className="text-[#c2410c] drop-shadow-[0_0_25px_rgba(194,65,12,0.3)]">no piden visa.</span>

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import PartySocket from 'partysocket';
 
-interface ChatMessage {
+export interface ChatMessage {
   id: string;
   username: string;
   text: string;

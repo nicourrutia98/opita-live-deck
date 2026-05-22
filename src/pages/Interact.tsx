@@ -1,8 +1,183 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { MessageSquare, Send, User, ExternalLink, Copy, Check, Compass, Sparkles } from 'lucide-react';
+import type { ChatMessage } from '../store/useAppStore';
+import { MessageSquare, Send, User, ExternalLink, Sparkles } from 'lucide-react';
+import { getSlideTheme } from '../utils/theme';
+import { SlideContent } from '../components/Slides';
+import { QRCode } from 'react-qr-code';
 
 const PARTYKIT_HOST = import.meta.env.VITE_PARTYKIT_HOST || "127.0.0.1:1999";
+
+function MiniProjector() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.35);
+  
+  const currentSlide = useAppStore((state) => state.currentSlide);
+  const isDemoMode = useAppStore((state) => state.isDemoMode);
+  const isQRFullscreen = useAppStore((state) => state.isQRFullscreen);
+  const qrUrl = useAppStore((state) => state.qrUrl);
+  const isConnected = useAppStore((state) => state.isConnected);
+  const chatMessages = useAppStore((state) => state.chatMessages);
+  const demoRoles = useAppStore((state) => state.demoRoles);
+
+  const [visibleMessages, setVisibleMessages] = useState<ChatMessage[]>([]);
+
+  useEffect(() => {
+    const updateVisible = () => {
+      const now = Date.now();
+      const active = chatMessages.filter(msg => now - msg.createdAt < 6000);
+      setVisibleMessages(active.slice(-3));
+    };
+
+    updateVisible();
+    const interval = setInterval(updateVisible, 1000);
+    return () => clearInterval(interval);
+  }, [chatMessages]);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width } = entry.contentRect;
+        setScale(width / 960);
+      }
+    });
+    observer.observe(containerRef.current);
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    if (rect.width > 0) {
+      setScale(rect.width / 960);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  const theme = getSlideTheme(currentSlide);
+  const height = 540 * scale;
+
+  return (
+    <div className="w-full bg-[#1C1C1E] border border-zinc-800 rounded-3xl p-3 shadow-2xl transition-all duration-300 hover:border-zinc-700">
+      {/* Live Badge & Title bar */}
+      <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+          <span className="text-[10px] font-bold text-red-500 font-mono tracking-wider uppercase">● EN VIVO</span>
+        </div>
+        <span className="text-[10px] text-zinc-400 font-mono font-medium">PROYECTOR PRINCIPAL</span>
+      </div>
+
+      {/* Screen Frame */}
+      <div 
+        ref={containerRef} 
+        className="w-full relative bg-[#09090B] rounded-2xl overflow-hidden border border-zinc-800 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]"
+        style={{ height: `${height}px` }}
+      >
+        {/* Scaled Projector Content */}
+        <div 
+          className={`absolute top-0 left-0 w-[960px] h-[540px] ${theme.background} origin-top-left flex flex-col select-none pointer-events-none transition-all duration-700 ease-in-out`}
+          style={{ transform: `scale(${scale})` }}
+        >
+          {/* Top Bar: branding + status */}
+          <div className="flex items-center justify-between px-8 pt-6 z-20">
+            <img src={theme.logo} alt="Opita Code" className="h-8 object-contain" />
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center space-x-1.5 px-3 py-1 rounded-full text-[10px] font-mono border shadow-sm ${theme.statusBg}`}>
+                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600 shadow-[0_0_4px_rgba(22,163,74,0.4)]' : 'bg-[#dc2626] animate-pulse'}`} />
+                <span className="font-semibold">{isConnected ? 'LIVE' : 'CONECTANDO'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating Chat Overlay */}
+          <div className="absolute bottom-16 left-6 z-30 max-w-[240px] flex flex-col gap-1.5">
+            {visibleMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className="bg-black/90 border border-white/10 text-white rounded-lg px-2.5 py-1.5 shadow-lg flex flex-col gap-0.5 text-[10px]"
+              >
+                <div className="flex items-center gap-1 font-bold text-zinc-300">
+                  <span className={msg.username === "OpitaBot" ? 'text-orange-400' : ''}>
+                    {msg.username}
+                  </span>
+                </div>
+                <p className="text-zinc-200 text-[9px] leading-tight">
+                  {msg.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Main Slide Content */}
+          {isQRFullscreen ? (
+            <div className="flex-1 bg-[#09090B] flex flex-col items-center justify-center p-4">
+              <img src="/opita-code-horizontal-white-v4.png" alt="Opita Code" className="h-6 mb-4 opacity-50 object-contain" />
+              <h2 className="text-2xl font-black text-white mb-4 text-center tracking-tight">
+                Escanea para <span className="text-[#c2410c]">interactuar</span>
+              </h2>
+              <div className="bg-white p-4 rounded-2xl shadow-lg">
+                <QRCode value={qrUrl} size={150} fgColor="#09090B" />
+              </div>
+              <p className="mt-4 text-[#71717A] font-mono text-xs tracking-wider">
+                {qrUrl.replace('https://', '')}
+              </p>
+            </div>
+          ) : isDemoMode ? (
+            <div className="flex-1 flex flex-col items-center justify-center space-y-4 z-10 px-6">
+              <span className="text-[10px] font-mono text-green-400 bg-green-950/40 px-2 py-0.5 rounded-full border border-green-500/30">
+                ● CONEXIONES EN VIVO
+              </span>
+              <h2 className={`text-2xl font-black ${theme.text} tracking-tight text-center`}>¿Qué sabes hacer?</h2>
+              
+              {demoRoles.length === 0 ? (
+                <div className="w-full max-w-sm p-4 bg-black/40 border border-green-500/20 rounded-xl text-green-500/60 text-xs font-mono text-center animate-pulse">
+                  ⚡ Esperando respuestas...
+                </div>
+              ) : (
+                <div className="w-full max-w-2xl flex flex-wrap justify-center gap-2 p-2 overflow-hidden max-h-[220px]">
+                  {demoRoles.map((role, index) => {
+                    const colors = [
+                      "from-violet-500/20 to-purple-500/5 border-violet-500/20 text-violet-300",
+                      "from-emerald-500/20 to-teal-500/5 border-emerald-500/20 text-emerald-300",
+                      "from-orange-500/20 to-amber-500/5 border-orange-500/20 text-orange-300",
+                      "from-blue-500/20 to-indigo-500/5 border-blue-500/20 text-blue-300",
+                      "from-pink-500/20 to-rose-500/5 border-pink-500/20 text-rose-300"
+                    ];
+                    const styleClass = colors[index % colors.length];
+                    return (
+                      <div
+                        key={index}
+                        className={`px-2.5 py-1 rounded-lg border bg-gradient-to-r ${styleClass} text-[10px] font-bold`}
+                      >
+                        {role}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center z-10">
+              <div className="w-full max-w-4xl flex items-center justify-center">
+                <SlideContent slide={currentSlide} />
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center justify-between px-8 pb-4 z-20 mt-auto">
+            <span className={`${theme.footerText} font-mono text-[9px]`}>
+              En vivo desde Neiva, Huila 🇨🇴
+            </span>
+            <span className={`${theme.text} font-mono text-xs font-bold`}>
+              {currentSlide} <span className="opacity-40">/ 8</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Interact() {
   const {
@@ -23,7 +198,6 @@ export default function Interact() {
   const [msgText, setMsgText] = useState("");
   const [demoInput, setDemoInput] = useState("");
   const [hasSubmittedRole, setHasSubmittedRole] = useState(false);
-  const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -73,18 +247,12 @@ export default function Interact() {
     setHasSubmittedRole(true);
   };
 
-  const copyToClipboard = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCoupon(code);
-    setTimeout(() => setCopiedCoupon(null), 2000);
-  };
-
   // ─── PANTALLA DE REGISTRO / LOGIN ──────────────────────────────────────────
   if (!username) {
     return (
       <div className="min-h-screen bg-[#EFEFEB] flex items-center justify-center p-6">
         <div className="w-full max-w-md bg-white rounded-3xl border border-[#D9D9D3] p-8 shadow-xl flex flex-col items-center">
-          <img src="/opita-horizontal-dark.svg" alt="Opita Code" className="h-10 mb-8 opacity-80" />
+          <img src="/opita-code-horizontal-black-v4.png" alt="Opita Code" className="h-10 mb-8 opacity-80 object-contain" />
           <h2 className="text-2xl font-black text-[#09090B] tracking-tight mb-2 text-center">
             Únete al Live
           </h2>
@@ -125,7 +293,7 @@ export default function Interact() {
       {/* Header */}
       <header className="bg-white border-b border-[#D9D9D3] px-6 py-4 flex items-center justify-between shadow-sm z-10">
         <div className="flex items-center gap-2">
-          <img src="/opita-horizontal-dark.svg" alt="Opita Code" className="h-6" />
+          <img src="/opita-code-horizontal-black-v4.png" alt="Opita Code" className="h-6 object-contain" />
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center space-x-1.5 bg-[#FAFAFA] px-3 py-1 rounded-full text-[10px] font-mono border border-[#E4E4E7]">
@@ -140,24 +308,7 @@ export default function Interact() {
       <div className="p-4 z-10">
         <div className="transition-all duration-500 transform scale-100">
           {currentSlide >= 1 && currentSlide <= 4 && (
-            <div className="bg-white border border-[#D9D9D3] p-5 rounded-2xl shadow-sm text-center">
-              <span className="inline-block p-3 bg-orange-50 rounded-xl mb-3 border border-orange-100 text-[#ea580c]">
-                <Compass className="w-6 h-6 animate-spin-slow" />
-              </span>
-              <h3 className="font-black text-lg text-[#09090B] tracking-tight">¡Bienvenido a la Conferencia!</h3>
-              <p className="text-xs text-[#71717A] mt-2 leading-relaxed">
-                Estamos en vivo en Neiva. Quédate conectado para ver demostraciones e interactuar con la pantalla principal.
-              </p>
-              <a
-                href="https://opitacode.com"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 mt-4 px-4 py-2 text-xs font-bold text-[#ea580c] bg-orange-50 hover:bg-orange-100 border border-orange-100 rounded-xl transition-all"
-              >
-                <span>opitacode.com</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
+            <MiniProjector />
           )}
 
           {currentSlide === 5 && (
@@ -168,26 +319,21 @@ export default function Interact() {
               <span className="inline-block text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md mb-2">BENEFICIO EXCLUSIVO</span>
               <h3 className="font-black text-xl tracking-tight">1 Mes Gratis de Vibe Studio Pro</h3>
               <p className="text-xs text-indigo-100 mt-1 leading-relaxed">
-                Desbloquea el poder del desarrollo con IA gobernada en español.
+                Desbloquea el poder del desarrollo con IA en español. Activa tu beneficio al registrarte o iniciar sesión en Opita Cuentas.
               </p>
 
-              <div className="mt-4 flex items-center justify-between bg-white/10 border border-white/20 p-2.5 rounded-xl">
-                <code className="text-sm font-mono font-bold tracking-wider">OPITAVIBE45</code>
-                <button
-                  onClick={() => copyToClipboard("OPITAVIBE45")}
-                  className="p-2 hover:bg-white/10 active:scale-95 rounded-lg transition-all"
-                >
-                  {copiedCoupon === "OPITAVIBE45" ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
-                </button>
+              <div className="mt-4 bg-white/10 border border-white/20 px-3 py-2 rounded-xl flex items-center justify-between">
+                <span className="text-[11px] text-indigo-200 font-medium">Cupón del Live</span>
+                <code className="text-xs font-mono font-bold tracking-wider bg-white/10 px-2 py-0.5 rounded">OPITAVIBE45</code>
               </div>
 
               <a
-                href="https://vibe.opitacode.com?promo=OPITAVIBE45"
+                href="https://cuentas.opitacode.com/promocion?code=OPITAVIBE45&app=vibe"
                 target="_blank"
                 rel="noreferrer"
                 className="w-full mt-4 py-2.5 bg-white hover:bg-indigo-50 text-indigo-700 active:scale-[0.98] font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-all"
               >
-                <span>Ir a Vibe Studio</span>
+                <span>Activar en Opita Cuentas</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
@@ -201,26 +347,21 @@ export default function Interact() {
               <span className="inline-block text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md mb-2">OPITA TRABAJOS</span>
               <h3 className="font-black text-xl tracking-tight">1 Mes Gratis de Trabajos Pro</h3>
               <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
-                Impulsa tu carrera tech y conecta con mejores empresas internacionales.
+                Impulsa tu carrera tech y conecta con mejores empresas. Activa tu beneficio al registrarte o iniciar sesión en Opita Cuentas.
               </p>
 
-              <div className="mt-4 flex items-center justify-between bg-white/10 border border-white/20 p-2.5 rounded-xl">
-                <code className="text-sm font-mono font-bold tracking-wider">OPITATRABAJOS45</code>
-                <button
-                  onClick={() => copyToClipboard("OPITATRABAJOS45")}
-                  className="p-2 hover:bg-white/10 active:scale-95 rounded-lg transition-all"
-                >
-                  {copiedCoupon === "OPITATRABAJOS45" ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
-                </button>
+              <div className="mt-4 bg-white/10 border border-white/20 px-3 py-2 rounded-xl flex items-center justify-between">
+                <span className="text-[11px] text-emerald-200 font-medium">Cupón del Live</span>
+                <code className="text-xs font-mono font-bold tracking-wider bg-white/10 px-2 py-0.5 rounded">OPITATRABAJOS45</code>
               </div>
 
               <a
-                href="https://trabajos.opitacode.com?promo=OPITATRABAJOS45"
+                href="https://cuentas.opitacode.com/promocion?code=OPITATRABAJOS45&app=trabajos"
                 target="_blank"
                 rel="noreferrer"
                 className="w-full mt-4 py-2.5 bg-white hover:bg-emerald-50 text-emerald-700 active:scale-[0.98] font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-all"
               >
-                <span>Ir a Opita Trabajos</span>
+                <span>Activar en Opita Cuentas</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>

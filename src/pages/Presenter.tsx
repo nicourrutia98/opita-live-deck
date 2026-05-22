@@ -258,7 +258,7 @@ export default function Presenter() {
         {/* Header */}
         <header className="flex justify-between items-center bg-[#F7F7F4] p-4 rounded-2xl border border-[#D9D9D3] shadow-sm">
           <div>
-            <img src="/opita-horizontal-dark.svg" alt="Opita Code" className="h-6 mb-2" />
+            <img src="/opita-code-horizontal-black-v4.png" alt="Opita Code" className="h-6 mb-2 object-contain" />
             <h1 className="text-xl font-bold text-[#111111] leading-none">Admin Panel</h1>
           </div>
           <div className="flex gap-3">

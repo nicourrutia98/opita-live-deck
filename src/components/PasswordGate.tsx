@@ -27,7 +27,7 @@ export function PasswordGate({ children }: { children: ReactNode }) {
         className={`flex flex-col items-center gap-6 transition-all ${shake ? 'animate-[shake_0.4s_ease]' : ''}`}
         style={shake ? { animation: 'shake 0.4s ease' } : {}}
       >
-        <img src="/opita-horizontal-dark.svg" alt="Opita Code" className="h-8 invert opacity-90" />
+        <img src="/opita-code-horizontal-white-v4.png" alt="Opita Code" className="h-8 opacity-90" />
 
         <form
           onSubmit={(e) => { e.preventDefault(); submit(); }}

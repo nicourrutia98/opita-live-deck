@@ -1,89 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
+import type { ChatMessage } from '../store/useAppStore';
 import { SlideContent } from '../components/Slides';
 import { QRCode } from 'react-qr-code';
+import { getSlideTheme } from '../utils/theme';
 
 const PARTYKIT_HOST = import.meta.env.VITE_PARTYKIT_HOST || "127.0.0.1:1999";
-
-interface ChatMessage {
-  id: string;
-  username: string;
-  text: string;
-  createdAt: number;
-}
-
-interface SlideTheme {
-  background: string;
-  text: string;
-  logo: string;
-  qrBg: string;
-  qrFg: string;
-  statusBg: string;
-  footerText: string;
-  border: string;
-}
-
-const getSlideTheme = (slide: number): SlideTheme => {
-  if (slide <= 4) {
-    return {
-      background: "bg-[#FAFAFA] text-[#09090B]",
-      text: "text-[#09090B]",
-      logo: "/opita-horizontal-dark.svg",
-      qrBg: "bg-white border-[#E4E4E7]",
-      qrFg: "#09090B",
-      statusBg: "bg-white border-[#E4E4E7] text-[#09090B]",
-      footerText: "text-[#71717A]",
-      border: "border-[#E4E4E7]"
-    };
-  }
-  if (slide === 5) {
-    return {
-      background: "bg-gradient-to-br from-[#1e1b4b] via-[#311042] to-[#0f051d] text-white",
-      text: "text-zinc-100",
-      logo: "/opita-horizontal-light.svg",
-      qrBg: "bg-zinc-900 border-zinc-800",
-      qrFg: "#FAFAFA",
-      statusBg: "bg-zinc-900 border-zinc-800 text-zinc-300",
-      footerText: "text-zinc-500",
-      border: "border-zinc-800"
-    };
-  }
-  if (slide === 6) {
-    return {
-      background: "bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#041a16] text-white",
-      text: "text-emerald-50",
-      logo: "/opita-horizontal-light.svg",
-      qrBg: "bg-zinc-900 border-zinc-800",
-      qrFg: "#FAFAFA",
-      statusBg: "bg-zinc-900 border-zinc-800 text-emerald-300",
-      footerText: "text-emerald-600/80",
-      border: "border-emerald-800/30"
-    };
-  }
-  if (slide === 7) {
-    return {
-      background: "bg-[#020205] text-green-400",
-      text: "text-green-400",
-      logo: "/opita-horizontal-light.svg",
-      qrBg: "bg-black border-green-500/30",
-      qrFg: "#22c55e",
-      statusBg: "bg-black border-green-500/30 text-green-400",
-      footerText: "text-green-600",
-      border: "border-green-500/20"
-    };
-  }
-  // slide === 8
-  return {
-    background: "bg-gradient-to-br from-[#09090B] via-[#1c0d02] to-[#09090B] text-white",
-    text: "text-orange-50",
-    logo: "/opita-horizontal-light.svg",
-    qrBg: "bg-zinc-900 border-zinc-800",
-    qrFg: "#ea580c",
-    statusBg: "bg-zinc-900 border-zinc-800 text-orange-400",
-    footerText: "text-orange-950",
-    border: "border-orange-900/30"
-  };
-};
 
 export default function Viewer() {
   const currentSlide = useAppStore((state) => state.currentSlide);
@@ -161,7 +83,7 @@ export default function Viewer() {
         {/* Main Content */}
         {isQRFullscreen ? (
           <div className="fixed inset-0 z-[200] bg-[#09090B] flex flex-col items-center justify-center p-8">
-            <img src="/opita-horizontal-light.svg" alt="Opita Code" className="h-8 mb-8 opacity-60" />
+            <img src="/opita-code-horizontal-white-v4.png" alt="Opita Code" className="h-8 mb-8 opacity-60 object-contain" />
             <h2 className="text-4xl md:text-6xl font-black text-white mb-8 text-center tracking-tight">
               Escanea para <span className="text-[#c2410c]">interactuar</span>
             </h2>
