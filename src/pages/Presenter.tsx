@@ -82,6 +82,7 @@ export default function Presenter() {
     isChatConnected,
     initializeChatSocket,
     sendChatMessage,
+    sendPresenterSpeech,
     resetChatAndDemo
   } = useAppStore();
 
@@ -164,6 +165,9 @@ export default function Presenter() {
         const transcript = received.channel?.alternatives[0]?.transcript;
         if (transcript && received.is_final) {
           console.log('🎙️ Orador (Final):', transcript);
+          
+          // Enviar la transcripción final al servidor de chat
+          sendPresenterSpeech(transcript);
           
           // Acumular el texto para darle contexto real a DeepSeek
           transcriptBufferRef.current += " " + transcript;

@@ -12,7 +12,7 @@ const DEFAULT_STATE: PresentationState = {
   currentSlide: 1,
   isDemoMode: false,
   isQRFullscreen: false,
-  qrUrl: "https://d3k6c6srmxps7z.cloudfront.net",
+  qrUrl: "https://d3k6c6srmxps7z.cloudfront.net/#/interact",
 };
 
 export default {

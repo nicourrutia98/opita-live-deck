@@ -23,18 +23,25 @@ interface AppState {
   setSlide: (slide: number) => void;
   toggleDemoMode: () => void;
   toggleQRFullscreen: () => void;
-  setQrUrl: (url: string) => void;
   initializePartySocket: (host: string, room: string) => void;
   
   // Chat & Demo Actions
   initializeChatSocket: (host: string, room: string) => void;
   sendChatMessage: (username: string, text: string) => void;
+  sendPresenterSpeech: (text: string) => void;
   submitDemoRole: (role: string) => void;
   resetChatAndDemo: () => void;
 }
 
 let ps: PartySocket | null = null;
 let chatPs: PartySocket | null = null;
+
+const getDynamicQrUrl = () => {
+  if (typeof window === 'undefined') return "https://d3k6c6srmxps7z.cloudfront.net/#/interact";
+  const searchParams = new URLSearchParams(window.location.search);
+  const room = searchParams.get("room") || "presentation";
+  return `${window.location.origin}/?room=${room}#/interact`;
+};
 
 // ── Helper: enviar update al servidor ────────────────────────────────────────
 function sendUpdate(state: Partial<AppState>) {
@@ -44,7 +51,6 @@ function sendUpdate(state: Partial<AppState>) {
       currentSlide: state.currentSlide,
       isDemoMode: state.isDemoMode,
       isQRFullscreen: state.isQRFullscreen,
-      qrUrl: state.qrUrl,
     }));
   }
 }
@@ -53,7 +59,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   currentSlide: 1,
   isDemoMode: false,
   isQRFullscreen: false,
-  qrUrl: "https://d3k6c6srmxps7z.cloudfront.net/#/interact", // Apuntar a interact por defecto
+  qrUrl: getDynamicQrUrl(),
   isConnected: false,
 
   // Chat & Demo
@@ -82,12 +88,18 @@ export const useAppStore = create<AppState>((set, get) => ({
           if (isAdmin) {
             if (adminSynced) return;
             adminSynced = true;
+            set({
+              currentSlide: data.currentSlide ?? get().currentSlide,
+              isDemoMode: data.isDemoMode ?? get().isDemoMode,
+              isQRFullscreen: data.isQRFullscreen ?? get().isQRFullscreen,
+            });
+            sendUpdate({ ...get() });
+            return;
           }
           set({
             currentSlide: data.currentSlide ?? get().currentSlide,
             isDemoMode: data.isDemoMode ?? get().isDemoMode,
             isQRFullscreen: data.isQRFullscreen ?? get().isQRFullscreen,
-            qrUrl: data.qrUrl ?? get().qrUrl,
           });
         }
       } catch (err) {
@@ -160,6 +172,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  sendPresenterSpeech: (text: string) => {
+    if (chatPs?.readyState === WebSocket.OPEN) {
+      chatPs.send(JSON.stringify({ type: "presenter_speech", text }));
+    }
+  },
+
   submitDemoRole: (role: string) => {
     if (chatPs?.readyState === WebSocket.OPEN) {
       chatPs.send(JSON.stringify({ type: "demo_submit", role }));
@@ -191,10 +209,5 @@ export const useAppStore = create<AppState>((set, get) => ({
     const newQRMode = !get().isQRFullscreen;
     set({ isQRFullscreen: newQRMode });
     sendUpdate({ ...get(), isQRFullscreen: newQRMode });
-  },
-
-  setQrUrl: (url: string) => {
-    set({ qrUrl: url });
-    sendUpdate({ ...get(), qrUrl: url });
   },
 }));

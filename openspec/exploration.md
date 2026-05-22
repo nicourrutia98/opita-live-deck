@@ -1,62 +1,55 @@
-# Exploración: Conferencia Premium e Interactividad en Tiempo Real
+# Exploración: Bot Inteligente, Moderación Estricta y QR Dinámico
 
-Para lograr una experiencia premium en la conferencia de 45 minutos de Opita Code, se propone integrar un canal de interacción en tiempo real mediante PartyKit que sincronice al presentador, la pantalla de visualización (Viewer), los productos de Opita Code y los dispositivos móviles de la audiencia.
+Este documento explora las soluciones técnicas para dos necesidades críticas en la plataforma:
+1. **Corrección del QR de Interacción**: El QR actualmente redirige a la raíz de la web en lugar del chat interactivo debido a una discrepancia entre la URL inicial de PartyKit y la URL de la aplicación.
+2. **Chatbot Inteligente de Audiencia (OpitaBot)**: Un asistente virtual que intervenga de forma pausada (cada 2 a 3 minutos), diciendo solo lo necesario y reaccionando tanto al chat de la audiencia como al discurso en vivo del presentador, manteniendo una moderación impecable.
 
 ---
 
-## 1. Arquitectura de Sincronización Doble
+## 1. Diagnóstico del Redireccionamiento del QR
 
-Para mantener una separación de conceptos limpia:
-1. **Presentación (`slide-sync.ts`)**: Controla y persiste el estado de la diapositiva actual (`currentSlide`), el modo demo (`isDemoMode`) y si el QR está en pantalla completa (`isQRFullscreen`).
-2. **Interactividad (`chat-server.ts` - Nueva Party)**: Maneja los mensajes de chat en tiempo real y el envío de perfiles/roles de la audiencia para la demo interactiva en la Diapositiva 7.
+### Causa Raíz:
+- En `party/slide-sync.ts`, el estado inicial por defecto (`DEFAULT_STATE`) inicializa `qrUrl` como `https://d3k6c6srmxps7z.cloudfront.net` (sin fragmento de ruta).
+- Al sincronizarse, este valor sobrescribe el valor predeterminado del cliente (`https://d3k6c6srmxps7z.cloudfront.net/#/interact`), haciendo que el QR renderizado carezca de la ruta `/interact`.
+- Adicionalmente, el QR no pasa de forma dinámica el identificador de la sala (`room`), lo que causaría desincronización si se usa una sala personalizada (ej. `?room=neiva2026`).
+
+### Solución Propuesta:
+- Corregir el valor por defecto en `party/slide-sync.ts` a `https://d3k6c6srmxps7z.cloudfront.net/#/interact`.
+- En `Presenter.tsx` y `Viewer.tsx`, calcular dinámicamente la URL en base a `window.location.origin` y los parámetros de la URL actual para asegurar que la redirección funcione en desarrollo local (`http://localhost:5173`) y producción, y propague el parámetro `room` (ej. `https://d3k6c6srmxps7z.cloudfront.net/?room=neiva#/interact`).
+
+---
+
+## 2. Arquitectura del Bot de Chat Inteligente (OpitaBot)
+
+Para que el bot hable cada 2 o 3 minutos con criterio y de forma contextualizada, diseñamos un sistema basado en eventos y alarmas persistentes.
 
 ```mermaid
 graph TD
-    Presenter[Presenter.tsx] -- Cambia slide --> SlideSync[PartyKit: slide-sync]
-    Viewer[Viewer.tsx] -- Escucha slide --> SlideSync
-    Audience[Interact.tsx] -- Escucha slide --> SlideSync
+    Presenter[Presenter STT] -- transcribe voz --> WS_Speech[Presenter Speech Message]
+    WS_Speech --> PartyKit[PartyKit Chat Server]
+    PartyKit -- guarda en storage --> Storage[(Durable Storage)]
     
-    Audience -- Envía chat / roles --> ChatServer[PartyKit: chat-server]
-    ChatServer -- Broadcast chat / roles --> Viewer
-    ChatServer -- Broadcast chat --> Presenter
+    Audience[Interact.tsx] -- envía chat --> PartyKit
+    PartyKit -- guarda en storage --> Storage
+    
+    PartyKit -- onAlarm cada 2-3 min --> LLM_Check[DeepSeek Chat API]
+    Storage -- lee slides + chat + voz --> LLM_Check
+    LLM_Check -- texto crudo --> SafetyFilter[Filtro Anti-Groserías]
+    SafetyFilter -- texto limpio --> Broadcast[Broadcast a la Audiencia]
 ```
 
----
-
-## 2. Experiencia de Usuario Móvil (`Interact.tsx`)
-
-La audiencia escaneará el código QR visible en el deck (que apuntará a `https://d3k6c6srmxps7z.cloudfront.net/#/interact`).
-Al entrar, se les presentará una interfaz web móvil optimizada:
-
-- **Registro Rápido**: Ingresar un nombre/alias (guardado en `localStorage`).
-- **Tarjeta Contextual (Sincronizada con la diapositiva actual)**:
-  - **Diapositivas 1-4**: Bienvenida y enlaces a la web de Opita Code.
-  - **Diapositiva 5 (Vibe Studio)**: Cupón dinámico "1 mes de Vibe Studio Pro gratis" con redirección y copia automática del cupón `OPITAVIBE45`.
-  - **Diapositiva 6 (Ecosistema)**: Cupón dinámico "1 mes de Trabajos Pro gratis" con cupón `OPITATRABAJOS45`.
-  - **Diapositiva 7 (Demo en Vivo)**: Formulario interactivo para enviar el rol/perfil de desarrollo.
-  - **Diapositiva 8 (Cierre)**: Enlaces de redes sociales y feedback.
-- **Chat en Tiempo Real**: Un chat persistente en la mitad inferior para enviar reacciones y preguntas al orador.
+### Componentes Clave:
+1. **Captura de Voz del Presentador**:
+   - En `Presenter.tsx`, cuando la transcripción intermedia de Deepgram se hace final (`received.is_final`), se envía al servidor mediante el WebSocket de chat con el tipo `presenter_speech`.
+   - El servidor almacena los últimos 10 enunciados del orador en el buffer `presenter_speech` del Durable Storage.
+2. **Petición al LLM (DeepSeek)**:
+   - Al dispararse la alarma, el servidor reúne el historial de chat reciente (últimos 15 mensajes), el buffer de discurso del orador y el slide actual.
+   - Envía esta información en un system prompt optimizado a `https://api.deepseek.com/chat/completions` utilizando `DEEPSEEK_API_KEY` (configurada en el entorno de PartyKit).
+3. **Filtro de Seguridad de Dos Capas (Moderación)**:
+   - **Capa Semántica**: El system prompt instruye estrictamente al LLM a no utilizar lenguaje vulgar, modismos groseros ni comentarios fuera de lugar, limitándose a una intervención amigable de 1 o 2 frases.
+   - **Capa Programática (Regex)**: El servidor pasa la respuesta generada por el regex `BAD_WORDS_REGEX` y reemplaza cualquier término prohibido por un emoji de marca, actuando como filtro definitivo.
 
 ---
 
-## 3. Experiencia Visual del Viewer (`Viewer.tsx`)
-
-- **Chat Ticker / Overlay**: Los mensajes enviados por la audiencia flotarán en la esquina inferior izquierda con un diseño semi-transparente premium (estilo Twitch/Live stream) y se desvanecerán automáticamente tras 6 segundos para no obstruir el contenido.
-- **Visualización de la Demo (Diapositiva 7)**: En lugar del texto plano "Esperando respuestas...", se mostrará una grilla dinámica en tiempo real con las respuestas y roles que envía la audiencia.
-- **QR Siempre Disponible**: El QR en la barra superior se mantendrá apuntando a la ruta de interacción (`#/interact`) para que cualquier persona que llegue tarde pueda escanearlo y unirse inmediatamente.
-
----
-
-## 4. Experiencia del Presentador (`Presenter.tsx`)
-
-- **Chat Feed**: Se agregará una barra lateral colapsable en el panel de administración que le permita a Nico monitorear los comentarios y preguntas de la audiencia sin perder de vista sus notas de teleprompter ni los controles.
-- **Monitoreo de Conexiones**: Ver cuántas personas están conectadas activamente en el chat.
-
----
-
-## 5. Pruebas E2E (TDD)
-
-Se diseñará una prueba en `tests/prod/interact.spec.ts` para verificar:
-1. El envío de mensajes desde la vista de interacción y su correcta aparición en el Viewer.
-2. El cambio en la tarjeta contextual móvil cuando el presentador avanza de diapositiva.
-3. El procesamiento y visualización de roles de la demo interactiva en la Diapositiva 7.
+## 3. Pruebas y Robustez
+- Si la API de DeepSeek está caída, expira o no tiene fondos, el servidor cuenta con un fallback local basado en reglas pre-configuradas según el slide activo y el chat, garantizando que el bot continúe activo sin arrojar excepciones.

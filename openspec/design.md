@@ -1,76 +1,58 @@
-# Diseño Técnico: Estructura de Componentes y Estado
+# Diseño Técnico: Estructura del Bot y QR Dinámico
 
-Este documento define la estructura de clases, archivos y el flujo de datos del frontend y backend para el ciclo SDD de Interactividad Premium.
-
----
-
-## 1. Diseño del Servidor PartyKit (`party/chat-server.ts`)
-
-El servidor maneja dos listas persistentes en Durable Storage:
-- `messages`: Un array de objetos `{ id, username, text, createdAt }`.
-- `demoRoles`: Un array de strings con los roles enviados por la audiencia.
-
-### Lógica de Conexión (`onConnect`)
-1. Enviar el historial de chat con `{ type: "chat_sync", messages }`.
-2. Enviar el historial de roles con `{ type: "demo_sync", roles: demoRoles }`.
-
-### Lógica de Mensajes (`onMessage`)
-- Si `data.type === "chat"`:
-  - Validar y sanitizar texto (filtro de profanidad).
-  - Añadir ID, timestamp y almacenar. Limitar a 30 elementos.
-  - Guardar en almacenamiento: `room.storage.put("messages", messages)`.
-  - Broadcast a todos: `{ type: "chat_message", ...message }`.
-- Si `data.type === "demo_submit"`:
-  - Validar y sanitizar el string.
-  - Añadir al array `demoRoles`. Limitar a 50 elementos para evitar sobrecarga en pantalla.
-  - Guardar en almacenamiento.
-  - Broadcast a todos: `{ type: "demo_role", role: data.role }`.
-- Si `data.type === "reset"`:
-  - Vaciar `messages` y `demoRoles`.
-  - Guardar y hacer broadcast de `{ type: "reset" }`.
+Este documento define la estructura y flujos de datos específicos para la integración del bot y el QR dinámico.
 
 ---
 
-## 2. Cambios en el Estado Zustand (`src/store/useAppStore.ts`)
+## 1. Modificaciones en el Estado y Acciones de Zustand (`src/store/useAppStore.ts`)
 
-Agregaremos soporte para conectarse a la Party de Chat:
-- **Estado**:
-  - `chatMessages`: Array de `{ id, username, text, createdAt }`.
-  - `demoRoles`: Array de strings.
-  - `isChatConnected`: Boolean.
-- **Acciones**:
-  - `initializeChatSocket(host: string, room: string)`: Conectar a la party `chat`.
-  - `sendChatMessage(username: string, text: string)`: Enviar un mensaje de chat.
-  - `submitDemoRole(role: string)`: Enviar un rol de la demo.
-  - `resetChatAndDemo()`: Enviar un mensaje de reset (solo admin).
-
----
-
-## 3. Flujo en la Vista de Acompañamiento (`src/pages/Interact.tsx`)
-
-- **Persistencia**: Leer y escribir `username` de `localStorage`.
-- **Estructura del Componente**:
-  - Si `!username`: Mostrar pantalla de login con un input elegante (Opita Orange tokens) y botón "Entrar al Live".
-  - Si `username`: Mostrar layout móvil con:
-    - **Header**: Logo de Opita Code, indicador de estado de conexión.
-    - **Tarjeta del Slide Activo (Zona 1)**: Cambia automáticamente basado en `currentSlide` de la store.
-      - Renderiza subcomponentes: `<WelcomeCard />`, `<VibePromo />`, `<TrabajosPromo />`, `<DemoForm />`, `<FooterLinks />`.
-    - **Feed de Chat (Zona 2)**:
-      - Lista de mensajes con scroll automático hacia el final al recibir mensajes nuevos.
-      - Caja de texto para enviar con límite de 100 caracteres para evitar spam.
+- **Acción Adicional**:
+  - `sendPresenterSpeech(text: string)`:
+    ```ts
+    sendPresenterSpeech: (text: string) => {
+      if (chatPs?.readyState === WebSocket.OPEN) {
+        chatPs.send(JSON.stringify({ type: "presenter_speech", text }));
+      }
+    }
+    ```
 
 ---
 
-## 4. Animaciones CSS y Estilos Premium (`index.css` / `App.css`)
+## 2. Inicialización Dinámica del QR (`src/store/useAppStore.ts`)
 
-- **Suavizado de Temas**: Transición suave en el contenedor principal de `Viewer.tsx`:
-  ```css
-  .viewer-container {
-    transition: background-color 0.8s ease-in-out, color 0.5s ease-in-out;
-  }
-  ```
-- **Chat Bubbles Ticker**: Los mensajes flotantes en el Viewer tendrán una animación de slide-up y fade-in de Tailwind/CSS, y desaparecerán después de 6 segundos.
-- **Micro-animaciones**:
-  - Botones con efecto hover de escala leve (`hover:scale-[1.02] active:scale-[0.98]`).
-  - Tarjetas promocionales con sombras degradadas suaves y transiciones.
-  - Confetti en el canjeo usando una micro-animación CSS local o partículas.
+En el store se define una función auxiliar para calcular el QR localmente en base a `window` al cargar el módulo:
+```ts
+const getDynamicQrUrl = () => {
+  if (typeof window === 'undefined') return "https://d3k6c6srmxps7z.cloudfront.net/#/interact";
+  const searchParams = new URLSearchParams(window.location.search);
+  const room = searchParams.get("room") || "presentation";
+  return `${window.location.origin}/?room=${room}#/interact`;
+};
+```
+Este valor inicializa `qrUrl` en el store. Al recibir un evento `"sync"`, el cliente omite actualizar `qrUrl` con los datos del servidor para evitar pisar el estado local con datos desactualizados o de otros entornos (como localhost). El visualizador y el presentador leen directamente del store.
+
+---
+
+## 3. Lógica Interna del Servidor de Chat (`party/chat-server.ts`)
+
+### onConnect:
+- Si no hay alarma, programar una alarma para dentro de 120,000ms.
+- Guardar `current_slide` en storage si no existe (inicializar en 1).
+
+### onAlarm:
+1. Comprobar conexiones activas con `[...room.getConnections()].length`.
+2. Si es `0`, borrar alarma (`await room.storage.deleteAlarm()`) y finalizar.
+3. Recuperar `messages`, `presenter_speech` y `current_slide` de `room.storage`.
+4. Preparar Prompt para DeepSeek:
+   - Mapear el `current_slide` a una descripción temática concisa.
+   - Formatear los últimos 15 mensajes del chat.
+   - Formatear los últimos enunciados de voz del presentador.
+5. Hacer llamada HTTP POST a `https://api.deepseek.com/chat/completions`.
+   - Timeout de 8 segundos.
+   - Headers: `Authorization: Bearer ${apiKey}`.
+6. Sanitizar la respuesta con `filterProfanity`.
+7. Broadcast del nuevo mensaje de chat `{ type: "chat_message", id, username: "OpitaBot", text, createdAt }`.
+8. Programar la siguiente alarma para dentro de `120000 + Math.random() * 60000` milisegundos.
+
+### Fallback en caso de error del LLM:
+Si la llamada a la API falla o `DEEPSEEK_API_KEY` no está configurada, el bot elegirá un mensaje de forma pseudo-aleatoria según el slide actual y el chat (por ejemplo, si el slide es 7 y no hay mensajes, invita a la audiencia a participar con un chiste técnico o instrucción del slide).
