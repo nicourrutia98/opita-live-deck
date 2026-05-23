@@ -9,5 +9,22 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Opita Telemetry -->
+    <script>
+      (function(){
+        var API="https://api.opitacode.com/core/events/ingest",PID="opita-live-deck";
+        var sid=sessionStorage.getItem("opita_session_id");
+        if(!sid){sid=crypto.randomUUID();sessionStorage.setItem("opita_session_id",sid)}
+        var q=[];
+        function t(type,data){q.push({type:type,source:"app",timestamp:new Date().toISOString(),data:data||{}});if(q.length>=10)f()}
+        function f(){if(!q.length)return;var p=JSON.stringify({events:q.splice(0),sessionId:sid,productId:PID});if(navigator.sendBeacon){navigator.sendBeacon(API,p)}else{fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:p,keepalive:true}).catch(function(){})}}
+        var ps=new URLSearchParams(location.search);
+        t("page_view",{url:location.pathname,referrer:document.referrer||"",utm_source:ps.get("utm_source"),utm_medium:ps.get("utm_medium"),utm_campaign:ps.get("utm_campaign")});
+        t("session_start",{url:location.pathname});
+        document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")f()});
+        window.addEventListener("pagehide",f);
+      })();
+    </script>
   </body>
 </html>
