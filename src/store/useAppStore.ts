@@ -33,14 +33,15 @@ interface AppState {
   resetChatAndDemo: () => void;
 }
 
+import { getRoomParam } from '../utils/url';
+
 let ps: PartySocket | null = null;
 let chatPs: PartySocket | null = null;
 
 const getDynamicQrUrl = () => {
   if (typeof window === 'undefined') return "https://d3k6c6srmxps7z.cloudfront.net/#/interact";
-  const searchParams = new URLSearchParams(window.location.search);
-  const room = searchParams.get("room") || "presentation";
-  return `${window.location.origin}/?room=${room}#/interact`;
+  const room = getRoomParam();
+  return `${window.location.origin}/#/interact?room=${room}`;
 };
 
 // ── Helper: enviar update al servidor ────────────────────────────────────────

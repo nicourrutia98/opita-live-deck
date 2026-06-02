@@ -44,9 +44,9 @@ test.describe('E2E: Opita Live Deck Audience Interaction', () => {
     await interactPage.locator('button:has-text("Conectarse")').click({ force: true });
 
     // Wait for connection to establish on all pages (LIVE badge)
-    await expect(presenterPage.locator('text="LIVE"')).toBeVisible({ timeout: 15000 });
-    await expect(viewerPage.locator('text="LIVE"')).toBeVisible({ timeout: 15000 });
-    await expect(interactPage.locator('text="LIVE"')).toBeVisible({ timeout: 15000 });
+    await expect(presenterPage.locator('text="LIVE"').first()).toBeVisible({ timeout: 15000 });
+    await expect(viewerPage.locator('text="LIVE"').first()).toBeVisible({ timeout: 15000 });
+    await expect(interactPage.locator('text="LIVE"').first()).toBeVisible({ timeout: 15000 });
 
     // Reset presenter to slide 1
     const prevButton = presenterPage.locator('#prev-slide-btn');
@@ -61,13 +61,13 @@ test.describe('E2E: Opita Live Deck Audience Interaction', () => {
     await interactPage.locator('input[placeholder="Haz una pregunta o reacciona..."]').press('Enter');
 
     // Message should be visible in Mobile Companion list
-    await expect(interactPage.locator(`text=${chatMsg}`)).toBeVisible({ timeout: 10000 });
+    await expect(interactPage.locator(`text=${chatMsg}`).first()).toBeVisible({ timeout: 10000 });
 
     // Message should be visible in Presenter's sidebar monitor
-    await expect(presenterPage.locator(`text=${chatMsg}`)).toBeVisible({ timeout: 10000 });
+    await expect(presenterPage.locator(`text=${chatMsg}`).first()).toBeVisible({ timeout: 10000 });
 
     // Message should be visible in Viewer's ticker overlay
-    await expect(viewerPage.locator(`text=${chatMsg}`)).toBeVisible({ timeout: 10000 });
+    await expect(viewerPage.locator(`text=${chatMsg}`).first()).toBeVisible({ timeout: 10000 });
 
     // --- Part 2: Demo Role Input Grid ---
     // Navigate presenter to slide 7

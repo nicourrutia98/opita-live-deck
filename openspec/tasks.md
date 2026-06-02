@@ -26,4 +26,4 @@ Lista de tareas para seguir el flujo de desarrollo de la interactividad premium.
 ### Unidad 4: Verificación y Compilación
 - [x] Ejecutar `npm run build` para asegurar la compilación limpia del proyecto completo.
 - [x] Validar linting y corregir cualquier advertencia de TypeScript.
-- [ ] Desplegar los cambios y verificar el funcionamiento local/remoto de las salas.
+- [x] Desplegar los cambios y verificar el funcionamiento local/remoto de las salas.

@@ -4,6 +4,7 @@ import type { ChatMessage } from '../store/useAppStore';
 import { SlideContent } from '../components/Slides';
 import { QRCode } from 'react-qr-code';
 import { getSlideTheme } from '../utils/theme';
+import { getRoomParam } from '../utils/url';
 
 const PARTYKIT_HOST = import.meta.env.VITE_PARTYKIT_HOST || "127.0.0.1:1999";
 
@@ -22,8 +23,7 @@ export default function Viewer() {
   const [visibleMessages, setVisibleMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const room = searchParams.get("room") || "presentation";
+    const room = getRoomParam();
     initializePartySocket(PARTYKIT_HOST, room);
     initializeChatSocket(PARTYKIT_HOST, room);
   }, [initializePartySocket, initializeChatSocket]);

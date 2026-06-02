@@ -22,55 +22,63 @@ function generateId(): string {
 }
 
 const SLIDE_DESCRIPTIONS: Record<number, string> = {
-  1: "Portada de la presentación. Tesis: La IA no reemplaza ingenieros, sino a los pica-códigos. El valor real está en la arquitectura.",
-  2: "El Problema: Devs copian y pegan código sin entender bases conceptuales (Event Loop, CD, Garbage Collection).",
-  3: "Silicon Valley vs. El Magdalena: Clean Architecture, modularidad, puertos y adaptadores. Competir globalmente desde Neiva.",
-  4: "Tu Pasante Estrella: La IA es como un pasante rápido pero sin contexto de negocio. Se necesita TDD y contratos claros.",
-  5: "Vibe Studio: Plataforma de vibe-coding en español con deploy automático e integración rápida (ej. WhatsApp).",
-  6: "Ecosistema Opita Code: SaaS reales como Vibe Studio, Opita Trabajos, Cuentas, Barber, Sync. Altos estándares.",
-  7: "Demo en Vivo: La audiencia envía sus roles a la pantalla en tiempo real mediante QR.",
-  8: "Cierre: La IA potencia a quienes tienen bases sólidas. Visitar opitacode.com.",
+  1: "Inicio de la charla. Tesis: La inteligencia artificial automatiza la escritura de código básica, pero el verdadero valor humano está en planear cómo se estructuran y conectan las aplicaciones de manera estable.",
+  2: "El desafío: A veces usamos la tecnología copiando soluciones rápidas sin entender cómo funciona realmente por dentro (por ejemplo, cómo maneja la memoria o el orden de las tareas).",
+  3: "Talento global: Cómo diseñar software ordenado y de alta calidad para competir a nivel mundial desde Neiva, Huila y toda la región del Magdalena.",
+  4: "La IA como asistente: La inteligencia artificial escribe muy rápido pero le falta entender el contexto del negocio y de las personas. Se necesitan reglas claras para guiarla correctamente.",
+  5: "Vibe Studio: Nuestra plataforma moderna que permite crear y poner en línea aplicaciones de forma sencilla y veloz, facilitando la integración con servicios cotidianos como WhatsApp.",
+  6: "Ecosistema Opita Code: Productos y plataformas locales creadas con alta calidad para impulsar el desarrollo tecnológico de nuestra comunidad.",
+  7: "Demostración en vivo: Un espacio interactivo donde las personas de la audiencia usan sus celulares para enviar su perfil o lo que quieren hacer en tecnología en tiempo real.",
+  8: "Cierre: La tecnología potencia a quienes comprenden las bases fundamentales y diseñan con orden. Invitación a visitar opitacode.com.",
 };
 
 function getLocalFallbackBotMessage(slide: number, chatRecent: ChatMessage[]): string {
   const fallbacks: Record<number, string[]> = {
     1: [
-      "¡Bienvenidos todos! La IA es una herramienta brutal si sabés arquitectura.",
-      "Qué bueno ver gente apasionada. ¡Hoy hablamos de conceptos sólidos!"
+      "¡Bienvenidos a todos! La tecnología es asombrosa si entendemos cómo estructurar nuestras ideas.",
+      "¡Qué alegría verlos aquí! Compartan sus opiniones y preguntas en el chat desde ya."
     ],
     2: [
-      "Copiar y pegar sin entender te hace esclavo del código. ¡A estudiar los fundamentos!",
-      "La arquitectura es la clave para dominar la complejidad."
+      "Copiar y pegar sin entender es como construir una casa sin planos. ¡Es clave comprender las bases!",
+      "La tecnología funciona mejor cuando sabemos qué pasa detrás de escena."
     ],
     3: [
-      "Desde el Huila exportamos software de calidad mundial. ¡Pensá en grande!",
-      "Clean Architecture no es opcional, es tu seguro de vida como dev."
+      "¡Desde nuestra región podemos crear tecnología de clase mundial para todo el planeta!",
+      "Diseñar con buenas bases nos permite crear soluciones estables y duraderas."
     ],
     4: [
-      "La IA escribe rápido, pero vos sos el que toma las decisiones difíciles.",
-      "¿Ya usan TDD? Es el mejor amigo de la inteligencia artificial."
+      "La inteligencia artificial nos da velocidad, pero nosotros decidimos el rumbo y el propósito.",
+      "La IA es como un asistente veloz; la dirección y el contexto los pones tú."
     ],
     5: [
-      "Vibe Studio es un golazo para crear apps volando. ¿Ya reclamaron su cupón?",
-      "Despliegues al Edge en minutos. Vibe Studio la rompe."
+      "Vibe Studio es ideal para crear aplicaciones muy rápido. ¿Ya tienen su beneficio activo?",
+      "Crear y lanzar proyectos digitales ahora es más fácil que nunca con herramientas modernas."
     ],
     6: [
-      "En Opita Code creamos soluciones reales para la comunidad.",
-      "El talento local tiene espacio de sobra en nuestro ecosistema."
+      "En Opita Code creamos soluciones reales para impulsar el talento de nuestra comunidad.",
+      "Hay un mundo de oportunidades para todos en el ecosistema tecnológico local."
     ],
     7: [
-      "¡Lanzá tu rol al proyector! Quiero ver qué perfil tenés.",
-      "La demo en vivo está corriendo. ¡Mandá tu stack ahora!"
+      "¡Comparte tu rol o lo que te gustaría hacer en tecnología para verlo en pantalla!",
+      "La demostración en vivo está lista. ¡Envía tu perfil ahora mismo!"
     ],
     8: [
-      "¡Tremenda charla! Gracias por sumarse. A seguir aprendiendo en opitacode.com",
-      "El conocimiento es poder. ¡Nos vemos en el próximo evento!"
+      "¡Increíble encuentro! Gracias por acompañarnos. Sigamos construyendo juntos en opitacode.com",
+      "El aprendizaje nunca termina. ¡Nos vemos en el próximo evento!"
     ]
   };
 
-  if (chatRecent.length > 0) {
-    const lastMsg = chatRecent[chatRecent.length - 1];
-    return `¡Grande @${lastMsg.username}! Tenés toda la razón con lo que decís en el chat.`;
+  const humanRecent = chatRecent.filter(m => m.username !== "OpitaBot");
+  if (humanRecent.length > 0) {
+    const lastMsg = humanRecent[humanRecent.length - 1];
+    const interactiveResponses = [
+      `¡Totalmente de acuerdo, @${lastMsg.username}! La tecnología nos abre muchas puertas si la usamos con propósito. 🚀`,
+      `Excelente punto, @${lastMsg.username}. Justo sobre eso, ¿qué opinan los demás en el chat? 💻`,
+      `¡Así se habla, @${lastMsg.username}! En nuestra región hay muchísimo talento para lograr grandes proyectos. 🧡`,
+      `Buen aporte, @${lastMsg.username}. Ese enfoque ayuda mucho a entender cómo estructurar soluciones reales. ⚡`,
+      `¡Gran comentario, @${lastMsg.username}! La clave está en no tener miedo de experimentar y aprender algo nuevo. 🌟`
+    ];
+    return interactiveResponses[Math.floor(Math.random() * interactiveResponses.length)];
   }
 
   const options = fallbacks[slide] || fallbacks[1];
@@ -87,16 +95,19 @@ async function callDeepSeek(
   const chatContext = chatRecent.map(m => `@${m.username}: ${m.text}`).join("\n");
   const presenterContext = presenterRecent.join("\n");
 
-  const systemPrompt = `Eres "OpitaBot", el asistente virtual amigable de la conferencia técnica "Opita Code".
+  const systemPrompt = `Eres "OpitaBot", el asistente virtual amigable de la conferencia "Opita Code".
 Estamos en la diapositiva ${slide} del evento.
 Temática de la diapositiva: "${slideDesc}"
 
 Tus directrices estrictas:
 1. Respuestas de máximo 1 o 2 frases, sumamente conciso (menos de 30 palabras).
-2. Tono profesional, motivador, amigable, con el acento argentino/rioplatense natural (usá voseo, ej: "estás", "tenés", "mirá", "dale").
-3. Basar tu comentario en lo que dice la audiencia en el chat reciente (si hay) o en lo que acaba de decir el presentador. Priorizá siempre responderle a la audiencia.
-4. Jamás uses groserías, palabras obscenas ni insultos.
-5. Hablá únicamente sobre desarrollo de software, tecnología, la conferencia y lo que se está discutiendo.
+2. Tono muy cálido, motivador, amigable e inclusivo, en español latinoamericano neutro y estándar (sin modismos regionales, voseo o jergas).
+3. Actúa como un anfitrión que anima a toda la audiencia (público general no técnico) a participar e interactuar en el chat.
+4. Explica cualquier concepto técnico mencionado en el chat o por el presentador usando analogías cotidianas y sencillas que cualquiera entienda.
+5. Prioriza siempre interactuar con el chat reciente de la audiencia respondiendo a sus preguntas o comentarios de manera amigable.
+6. Jamás uses groserías, palabras obscenas ni insultos.
+7. Habla únicamente sobre tecnología, desarrollo de proyectos y lo que se está viviendo en la conferencia.
+8. NO te respondas a ti mismo ni interactúes con tus propios mensajes anteriores. Enfócate únicamente en responder a la audiencia o comentar lo que dice el orador.
 
 Chat reciente de la audiencia:
 ${chatContext || "(Sin mensajes de la audiencia por ahora)"}
@@ -116,7 +127,7 @@ ${presenterContext || "(El orador está en silencio por ahora)"}
         model: "deepseek-chat",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: "Generá tu intervención breve ahora." }
+          { role: "user", content: "Genera tu intervención breve ahora." }
         ],
         max_tokens: 60,
         temperature: 0.7
@@ -180,6 +191,13 @@ export default {
 
         await room.storage.put("messages", messages);
         room.broadcast(JSON.stringify({ type: "chat_message", ...newMessage }));
+
+        // Programar respuesta rápida en 5-10 segundos si no hay una alarma inminente
+        const currentAlarm = await room.storage.getAlarm();
+        const now = Date.now();
+        if (currentAlarm === null || currentAlarm > now + 10000) {
+          await room.storage.setAlarm(now + 5000 + Math.random() * 5000);
+        }
       }
 
       // ─── Capturar Voz del Presentador ────────────────────────────────────
@@ -239,7 +257,7 @@ export default {
         } else if (slide === 7) {
           botText = "¡Llegó la hora de la verdad! Escriban su perfil soñado en su móvil. Cuidado con romper la base de datos... 💥";
         } else if (slide === 8) {
-          botText = "¡Tremenda charla! Gracias a todos por acompañarnos. Visiten opitacode.com para seguir construyendo. 🧡";
+          botText = "¡Excelente charla! Gracias a todos por acompañarnos. Visiten opitacode.com para seguir construyendo. 🧡";
         }
 
         if (botText) {
@@ -284,6 +302,14 @@ export default {
       const messages = (await room.storage.get<ChatMessage[]>("messages")) ?? [];
       const presenterSpeech = (await room.storage.get<string[]>("presenter_speech")) ?? [];
       const slide = (await room.storage.get<number>("current_slide")) ?? 1;
+
+      // Evitar responder si el último mensaje ya es de OpitaBot
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.username === "OpitaBot") {
+        const nextDelay = 120000 + Math.random() * 60000;
+        await room.storage.setAlarm(Date.now() + nextDelay);
+        return;
+      }
 
       // Tomar los últimos 15 mensajes del chat para pasarlos como contexto
       const chatRecent = messages.slice(-15);

@@ -5,6 +5,7 @@ import { MessageSquare, Send, User, ExternalLink, Sparkles } from 'lucide-react'
 import { getSlideTheme } from '../utils/theme';
 import { SlideContent } from '../components/Slides';
 import { QRCode } from 'react-qr-code';
+import { getRoomParam } from '../utils/url';
 
 const PARTYKIT_HOST = import.meta.env.VITE_PARTYKIT_HOST || "127.0.0.1:1999";
 
@@ -203,8 +204,7 @@ export default function Interact() {
 
   // Conectar sockets al montar
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const room = searchParams.get("room") || "presentation";
+    const room = getRoomParam();
     initializePartySocket(PARTYKIT_HOST, room);
     initializeChatSocket(PARTYKIT_HOST, room);
   }, [initializePartySocket, initializeChatSocket]);
@@ -328,7 +328,7 @@ export default function Interact() {
               </div>
 
               <a
-                href="https://cuentas.opitacode.com/promocion?code=OPITAVIBE45&app=vibe"
+                href="https://cuenta.opitacode.com/promocion?code=OPITAVIBE45&app=vibe"
                 target="_blank"
                 rel="noreferrer"
                 className="w-full mt-4 py-2.5 bg-white hover:bg-indigo-50 text-indigo-700 active:scale-[0.98] font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-all"
@@ -356,7 +356,7 @@ export default function Interact() {
               </div>
 
               <a
-                href="https://cuentas.opitacode.com/promocion?code=OPITATRABAJOS45&app=trabajos"
+                href="https://cuenta.opitacode.com/promocion?code=OPITATRABAJOS45&app=trabajos"
                 target="_blank"
                 rel="noreferrer"
                 className="w-full mt-4 py-2.5 bg-white hover:bg-emerald-50 text-emerald-700 active:scale-[0.98] font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-all"

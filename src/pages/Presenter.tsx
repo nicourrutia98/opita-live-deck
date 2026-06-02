@@ -4,6 +4,7 @@ import { useAINotesStore } from '../store/useAINotesStore';
 
 import { SLIDES_COUNT, SlideContent } from '../components/Slides';
 import { ArrowLeft, ArrowRight, Play, MonitorSmartphone, Mic, MicOff, Bot, ChevronDown, ChevronUp, QrCode, X, MessageSquare, Trash2 } from 'lucide-react';
+import { getRoomParam } from '../utils/url';
 
 const PARTYKIT_HOST = import.meta.env.VITE_PARTYKIT_HOST || "127.0.0.1:1999";
 
@@ -98,8 +99,7 @@ export default function Presenter() {
   const noteStepRef = useRef<number>(0);
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const room = searchParams.get("room") || "presentation";
+    const room = getRoomParam();
     initializePartySocket(PARTYKIT_HOST, room);
     initializeChatSocket(PARTYKIT_HOST, room);
     
